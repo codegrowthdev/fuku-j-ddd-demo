@@ -50,8 +50,41 @@ func (ch *CommandHandler) RegisterOwner() error {
 func TestCommandHandler(t *testing.T) {
 	handler := CommandHandler{}
 
-	t.Run("[Given] レッジャーが使える時, [When] the owner requests register a new asset with valid date, [Then] the asset should be registered", func(t *testing.T) {
-		// Test implementation goes here
+	t.Run("[Given] 買い手がいる時, [When] 買い手がマーケットに対して有効な買い注文をすると [Then] 買い手の元帳に記録される", func(t *testing.T) {
+		// Given
+		handler.AskAsset()
+		buyer := Party.NewBuyer()
+		ledger := Ledger.NewLedger(buyer)
+		asset := Asset.NewAsset()
+		transaction := Transaction.NewTransction()
+		transaction = transaction.AddAsset(asset)
+		transaction = transaction.Bit()
+
+		// When
+		transaction, result := transaction.TryAskedBy(buyer)
+		assertSuccess(result)
+
+		// Then
+		_, result := ledger.TryAddAssetOfTransaction(transaction)
+		assertSuccess(result)
+	})
+
+	t.Run("[Given] 買い手がいる時, [When] 買い手がマーケットに対して無効な買い注文をすると [Then] 注文は失敗する", func(t *testing.T) {
+		// Given
+		buyer := Party.NewBuyer()
+		ledger := Ledger.NewLedger(buyer)
+		asset := Asset.NewAsset()
+		transaction := Transaction.NewTransction()
+		transaction = transaction.AddAsset(asset)
+		transaction = transaction.Bit()
+
+		// When
+		transaction, result := transaction.TryAskedBy(buyer)
+		assertFail(result)
+
+		// Then
+		_, result := ledger.TryAddAssetOfTransaction(transaction)
+		assertFail(result)
 	})
 
 	t.Run("RegisterAsset should throws error when brabrabra", func(t *testing.T) {
